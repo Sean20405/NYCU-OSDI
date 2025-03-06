@@ -1,6 +1,4 @@
-#include "uart.h"
-#include "mailbox.h"
-#include "string.h"
+#include "shell.h"
 
 void cmd_mbox() {
     uart_puts("Mailbox info:\r\n");
@@ -44,8 +42,7 @@ void cmd_mbox() {
     }
 }
 
-void main() {
-    init_uart();
+void shell() {
     char str[32];
     char help_msg[] = "help\t: print this help menu\nhello\t: print Hello World!\nmailbox\t: print hardware's information\n";
 
