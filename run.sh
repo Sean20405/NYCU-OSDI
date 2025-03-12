@@ -33,18 +33,32 @@ for usbid in $usbids; {
     
     if [ -n "$is_card_reader" ]; then 
         echo "Device $usbid is a card reader"
+
+        # Compile bootloader.img
+        cd bootloader
         make || exit 1
+        cd ../
         
-        # Copy the kernel image to the USB device
+        # Copy the bootloader to the USB device
         while [ ! -e /dev/sdd1 ]; do
             echo "Waiting for USB device to be mounted..."
             sleep 1
         done
         sudo mount /dev/sdd1 /mnt/usb
-        sudo cp build/kernel8.img /mnt/usb
-        ls -al /mnt/usb | grep kernel8.img
+        sudo cp bootloader/build/bootloader.img config.txt /mnt/usb
+
+        # Check the file is newest
+        ls -al /mnt/usb | grep -E 'bootloader.img|config.txt' | awk '{
+            orig=$0
+            timestamp=$6" "$7" "$8
+            bold_green="\033[1;32m"
+            reset="\033[0m"
+            gsub(timestamp, bold_green timestamp reset)
+            print
+        }'
         sudo umount /dev/sdd1
         echo "Copied kernel image to USB device"
+        
     else
         while [ ! -e /dev/ttyUSB0 ]; do
             echo "Waiting for USB device to be detected..."
