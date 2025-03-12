@@ -4,6 +4,8 @@ void cmd_help_msg() {
     uart_puts("help\t: print this help menu\r\n");
     uart_puts("hello\t: print Hello World!\r\n");
     uart_puts("mailbox\t: print hardware's information\r\n");
+    uart_puts("cat\t: print the content of a file\r\n");
+    uart_puts("ls\t: list all files in the archive\r\n");
     uart_puts("reboot\t: reboot the system\r\n");
     return;
 }
@@ -64,6 +66,12 @@ void shell() {
         }
         else if (strcmp(str, "mailbox") == 0) {
             cmd_mbox();
+        }
+        else if (strcmp(str, "cat") == 0) {
+            cpio_cat();
+        }
+        else if (strcmp(str, "ls") == 0) {
+            cpio_list();
         }
         else if (strcmp(str, "reboot") == 0) {
             uart_puts("Rebooting...\r\n");

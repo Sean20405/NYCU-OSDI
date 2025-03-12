@@ -2,6 +2,7 @@
 #define MAILBOX_H
 
 #include "gpio.h"
+#include "uart.h"
 
 /* Mailbox Registers Address */
 #define MAILBOX_BASE    MMIO_BASE + 0x0000b880

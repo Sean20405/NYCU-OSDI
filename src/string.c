@@ -16,3 +16,11 @@ void *memset(void *s, int c, unsigned int n) {
     }
     return s;
 }
+
+void memcpy(void *dest, void *src, unsigned int n) {
+    unsigned char *d = dest;
+    unsigned char *s = src;
+    while (n--) {
+        *d++ = *s++;
+    }
+}

@@ -1,5 +1,4 @@
 #include "mailbox.h"
-#include "uart.h"
 
 unsigned int mailbox_call(volatile unsigned int *mbox, unsigned char channel) {
     unsigned int msg = ((unsigned int)((unsigned long)mbox) & ~0xF) | (channel & 0xF);

@@ -5,6 +5,7 @@
 #include "mailbox.h"
 #include "string.h"
 #include "power.h"
+#include "cpio.h"
 
 void cmd_mbox();
 void shell();
