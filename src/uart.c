@@ -38,6 +38,36 @@ void init_uart() {
 }
 
 
+// Flush both the receive buffer and the transmit buffer
+void uart_flush() {
+    // Flust the receive buffer: read all unread data until the buffer is empty
+    while (*AUX_MU_LSR_REG & 0x01) {
+        (void)(*AUX_MU_IO_REG);
+    }
+    
+    // Flush the transmit buffer: wait until the buffer is empty
+    while (!(*AUX_MU_LSR_REG & 0x20)) {
+        asm volatile("nop");
+    }
+}
+
+
+// Only flush the receive buffer
+void uart_flush_rx() {
+    while (*AUX_MU_LSR_REG & 0x01) {
+        (void)(*AUX_MU_IO_REG);
+    }
+}
+
+
+// Only flush the transmit buffer
+void uart_flush_tx() {
+    while (!(*AUX_MU_LSR_REG & 0x20)) {
+        asm volatile("nop");
+    }
+}
+
+
 char uart_getc() {
     char ch;
     do { asm volatile("nop"); } while (!(*AUX_MU_LSR_REG & 0x1));

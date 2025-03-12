@@ -16,6 +16,9 @@
 
 void delay(unsigned int cycles);
 void init_uart();
+void uart_flush();
+void uart_flush_rx();
+void uart_flush_tx();
 char uart_getc();               // Read a char
 char *uart_gets(char *buffer);  // Read a string
 void uart_putc(char ch);        // Write a char

@@ -4,6 +4,7 @@
 #include "uart.h"
 #include "mailbox.h"
 #include "string.h"
+#include "power.h"
 
 void cmd_mbox();
 void shell();
