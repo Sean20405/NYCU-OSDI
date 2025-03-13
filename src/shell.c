@@ -1,13 +1,13 @@
 #include "shell.h"
 
 void cmd_help_msg() {
-    uart_puts("help\t: print this help menu\r\n");
-    uart_puts("hello\t: print Hello World!\r\n");
-    uart_puts("mailbox\t: print hardware's information\r\n");
-    uart_puts("cat\t: print the content of a file\r\n");
-    uart_puts("ls\t: list all files in the archive\r\n");
-    uart_puts("memAlloc\t: allocate memory\r\n");
-    uart_puts("reboot\t: reboot the system\r\n");
+    uart_puts("help     :print this help menu\r\n");
+    uart_puts("hello    :print Hello World!\r\n");
+    uart_puts("mailbox  :print hardware's information\r\n");
+    uart_puts("cat      :print the content of a file\r\n");
+    uart_puts("ls       :list all files in the archive\r\n");
+    uart_puts("memAlloc :allocate memory\r\n");
+    uart_puts("reboot   :reboot the system\r\n");
     return;
 }
 
@@ -81,7 +81,30 @@ int parse_cmd(char *str, struct Command *cmd) {
     return 0;
 }
 
+void print_info() {
+    uart_puts("\r\n");
+    uart_puts("    @@@@@@@@@@ @@@@@@@@@@@       \r\n");
+    uart_puts("    @@  @@    @@@    @@  @@      \r\n");
+    uart_puts("     @@    @@ @@@ @@    @@       \r\n");
+    uart_puts("      @@     @@@@@     @@        \r\n");
+    uart_puts("       @@@@@@@@@@@@@@@@@         \r\n");
+    uart_puts("      @@  @@@     @@  @@@        \r\n");
+    uart_puts("      @@@@@@@@@@@@@@@@ @@@       \r\n");
+    uart_puts("     @@@@@    @@@     @@@@       Welcome to Rpi 3B+\r\n");
+    uart_puts("    @  @@     @@@     @@ @@      Type 'help' to see the available commands\r\n");
+    uart_puts("    @@  @@    @@@@@    @@  @@    \r\n");
+    uart_puts("    @@@@@@@@@@   @@@@@@@@@@      \r\n");
+    uart_puts("     @@  @@@@      @@   @@       \r\n");
+    uart_puts("     @@    @@     @@    @@       \r\n");
+    uart_puts("      @@@  @@@@@@@@@  @@@        \r\n");
+    uart_puts("        @@@@@     @@@@@          \r\n");
+    uart_puts("           @@@@@@@@              \r\n");
+    uart_puts("\r\n");
+}                            
+
 void shell() {
+    print_info();
+    
     char raw_cmd[MAX_CMD_LENGTH];
     struct Command cmd;
 
