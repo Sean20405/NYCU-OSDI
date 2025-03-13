@@ -38,11 +38,7 @@ void cpio_list() {
 }
 
 
-void cpio_cat() {
-    uart_puts("Filename: ");
-    char target_file[256];
-    uart_gets(target_file);
-
+void cpio_cat(char *target_file) {
     struct cpio_newc_header *header = (struct cpio_newc_header *)CPIO_ARCHIVE_START;
 
     while (1) {

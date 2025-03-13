@@ -53,32 +53,75 @@ void cmd_mbox() {
     }
 }
 
+int parse_cmd(char *str, struct Command *cmd) {
+    /**
+     * Parse the command string and store the command name and arguments in the struct Command
+     * 
+     * @param str: the command string
+     * @param cmd: the struct Command to store the command name and arguments
+     * @return
+     *     0: success
+     *     1: str is NULL
+     *     2: too many arguments
+     */
+    if (str == NULL) return 1;
+
+    cmd->name = strtok(str, ' ');
+    cmd->argc = 0;
+
+    char *arg = strtok(NULL, ' ');
+    while (arg != NULL) {
+        if (cmd->argc >= MAX_ARGS) {
+            return 2;
+        }
+        cmd->args[cmd->argc] = arg;
+        cmd->argc++;
+        arg = strtok(NULL, ' ');
+    }
+    return 0;
+}
+
 void shell() {
-    char str[32];
+    char raw_cmd[MAX_CMD_LENGTH];
+    struct Command cmd;
 
     while(1) {
         uart_puts("# ");
-        uart_gets(str);
-        if (strcmp(str, "help") == 0) {
+        uart_gets(raw_cmd);
+
+        raw_cmd[MAX_CMD_LENGTH - 1] = '\0';  // Ensure the command string is null-terminated
+        int ret = parse_cmd(raw_cmd, &cmd);
+        if (ret == 1) {
+            uart_puts("Command is NULL\r\n");
+            continue;
+        }
+        else if (ret == 2) {
+            uart_puts("Too many arguments\r\n");
+            continue;
+        }
+
+        char *cmd_name = cmd.name;
+        if (strcmp(cmd_name, "help") == 0) {
             cmd_help_msg();
         }
-        else if (strcmp(str, "hello") == 0) {
+        else if (strcmp(cmd_name, "hello") == 0) {
             uart_puts("Hello World!\r\n");
         }
-        else if (strcmp(str, "mailbox") == 0) {
+        else if (strcmp(cmd_name, "mailbox") == 0) {
             cmd_mbox();
         }
-        else if (strcmp(str, "cat") == 0) {
-            cpio_cat();
+        else if (strcmp(cmd_name, "cat") == 0) {
+            char *filename = cmd.args[0];
+            cpio_cat(filename);
         }
-        else if (strcmp(str, "ls") == 0) {
+        else if (strcmp(cmd_name, "ls") == 0) {
             cpio_list();
         }
-        else if (strcmp(str, "memAlloc") == 0) {
+        else if (strcmp(cmd_name, "memAlloc") == 0) {
             char num_mem[6];
             uart_puts("Allocate memory: ");
             uart_gets(num_mem);
-            void *ptr = simple_alloc(atoi(num_mem));
+            void *ptr = simple_alloc((unsigned int)atoi(num_mem));
             if (ptr == NULL) {
                 uart_puts("Memory allocation failed\r\n");
             }
@@ -88,14 +131,14 @@ void shell() {
                 uart_puts("\r\n");
             }
         }
-        else if (strcmp(str, "reboot") == 0) {
+        else if (strcmp(cmd_name, "reboot") == 0) {
             uart_puts("Rebooting...\r\n");
             reset(100);
             return;  // To avoid print the shell prompt after reboot
         }
         else {
             uart_puts("Command not found: ");
-            uart_puts(str);
+            uart_puts(cmd_name);
             uart_puts("\r\n");
         }
     }

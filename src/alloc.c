@@ -1,5 +1,4 @@
 #include "alloc.h"
-#include "uart.h"
 
 extern char *__bss_end;
 extern char *__stack_top;
