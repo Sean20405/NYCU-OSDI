@@ -108,6 +108,14 @@ void uart_puts(char *str) {
 }
 
 
+void uart_putn(char *str, unsigned int n) {
+    unsigned int i;
+    for (i = 0; i < n; i++) {
+        uart_putc(str[i]);
+    }
+}
+
+
 void uart_hex(unsigned int d) {
     unsigned int n;
     int c;
@@ -116,5 +124,22 @@ void uart_hex(unsigned int d) {
         n = (d >> c) & 0xF;
         if (n <= 9) uart_putc(n + '0');
         else uart_putc(n - 10 + 'a');
+    }
+}
+
+
+void uart_int(int d) {
+    char str[12];
+    int i = 0;
+    if (d < 0) {
+        uart_putc('-');
+        d = -d;
+    }
+    do {
+        str[i++] = d % 10 + '0';
+        d /= 10;
+    } while (d > 0);
+    while (--i >= 0) {
+        uart_putc(str[i]);
     }
 }

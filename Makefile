@@ -45,6 +45,10 @@ run-gdb: $(BUILD_DIR)/$(OUTPUT_NAME).img
 run-rootfs: $(BUILD_DIR)/$(OUTPUT_NAME).img
 	qemu-system-aarch64 -M raspi3b -kernel $^ -initrd initramfs.cpio -display none -serial null -serial stdio
 
+.PHONY: run-dtb
+run-dtb: $(BUILD_DIR)/$(OUTPUT_NAME).img
+	qemu-system-aarch64 -M raspi3b -kernel $^ -initrd initramfs.cpio -dtb bcm2710-rpi-3-b-plus.dtb -display none -serial null -serial stdio
+
 .PHONY: clean
 clean:
 	rm -f $(BUILD_DIR)/*

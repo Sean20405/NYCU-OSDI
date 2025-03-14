@@ -2,6 +2,7 @@
 
 .global _start
 _start:  // read cpu id, stop slave cores
+    mov     x20, x0        // x20: dtb_addr
     mrs     x0, mpidr_el1  // read multiprocessor id register
     and     x0, x0, #0xff  // get cpu id
     cbz     x0, master     // if cpu id is 0, branch to master

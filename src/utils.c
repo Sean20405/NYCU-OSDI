@@ -44,6 +44,16 @@ int atoi(char *str) {
     return result;
 }
 
+uint32_t be2le_u32(uint32_t be) {
+    /**
+     * be2le_u32 - Converts a big-endian 32-bit unsigned integer to little-endian
+     * @be: The big-endian 32-bit unsigned integer
+     *
+     * Return: The little-endian 32-bit unsigned integer
+     */
+    return ((be & 0xFF) << 24) | ((be & 0xFF00) << 8) | ((be & 0xFF0000) >> 8) | ((be & 0xFF000000) >> 24);
+}
+
 unsigned int align(unsigned int n, unsigned int alignment) {
     return (n + alignment - 1) & ~(alignment - 1);
 }

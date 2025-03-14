@@ -45,10 +45,10 @@ for usbid in $usbids; {
             sleep 1
         done
         sudo mount /dev/sdd1 /mnt/usb
-        sudo cp bootloader/build/bootloader.img config.txt initramfs.cpio /mnt/usb
+        sudo cp bootloader/build/bootloader.img config.txt initramfs.cpio bcm2710-rpi-3-b-plus.dtb /mnt/usb
 
         # Check the file is newest
-        ls -al /mnt/usb | grep -E 'bootloader.img|config.txt|initramfs.cpio' | awk '{
+        ls -al /mnt/usb | grep -E 'bootloader.img|config.txt|initramfs.cpio|bcm2710-rpi-3-b-plus.dtb' | awk '{
             orig=$0
             timestamp=$6" "$7" "$8
             bold_green="\033[1;32m"

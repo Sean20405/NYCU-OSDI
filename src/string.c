@@ -30,6 +30,12 @@ char *strtok(char *str, char delim) {
     return ret;
 }
 
+unsigned int strlen(const char *s) {
+    unsigned int len = 0;
+    while (*s++) len++;
+    return len;
+}
+
 
 void *memset(void *s, int c, unsigned int n) {
     unsigned char *p = s;

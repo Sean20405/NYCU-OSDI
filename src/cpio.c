@@ -3,9 +3,10 @@
 #define CPIO_ARCHIVE_START 0x20000000  //  0x8000000 in QEMU, 0x20000000 in RPi3B+
 
 const unsigned long HEADER_SIZE = sizeof(struct cpio_newc_header);
+uint32_t cpio_addr;
 
 void cpio_list() {
-    struct cpio_newc_header *header = (struct cpio_newc_header *)CPIO_ARCHIVE_START;
+    struct cpio_newc_header *header = (struct cpio_newc_header *)cpio_addr;
 
     while (1) {
         char magic[6] = "070701";
@@ -39,7 +40,7 @@ void cpio_list() {
 
 
 void cpio_cat(char *target_file) {
-    struct cpio_newc_header *header = (struct cpio_newc_header *)CPIO_ARCHIVE_START;
+    struct cpio_newc_header *header = (struct cpio_newc_header *)cpio_addr;
 
     while (1) {
         char magic[6] = "070701";
