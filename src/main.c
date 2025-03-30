@@ -20,8 +20,8 @@ void main() {
         return;
     }
 
-    enable_irq();
-    core_timer_enable();
+    enable_irq_el1();
+    // timer_enable_irq();
     // uart_enable_irq();
 
     print_time();

@@ -1,14 +1,16 @@
 #include "shell.h"
 
 void cmd_help_msg() {
-    uart_puts("help     :print this help menu\r\n");
-    uart_puts("hello    :print Hello World!\r\n");
-    uart_puts("mailbox  :print hardware's information\r\n");
-    uart_puts("cat      :print the content of a file\r\n");
-    uart_puts("ls       :list all files in the archive\r\n");
-    uart_puts("exec     :execute a program\r\n");
-    uart_puts("memAlloc :allocate memory\r\n");
-    uart_puts("reboot   :reboot the system\r\n");
+    uart_puts("help       :print this help menu\r\n");
+    uart_puts("hello      :print Hello World!\r\n");
+    uart_puts("mailbox    :print hardware's information\r\n");
+    uart_puts("cat        :print the content of a file\r\n");
+    uart_puts("ls         :list all files in the archive\r\n");
+    uart_puts("exec       :execute a program\r\n");
+    uart_puts("test       :test async UART\r\n");
+    uart_puts("setTimeout : set a timeout and print a msg\r\n");
+    uart_puts("memAlloc   :allocate memory\r\n");
+    uart_puts("reboot     :reboot the system\r\n");
     return;
 }
 
@@ -145,7 +147,7 @@ void shell() {
             char *filename = cmd.args[0];
             exec(filename);
         }
-        else if (strcmp(cmd_name, "test") == 0) {
+        else if (strcmp(cmd_name, "test_async") == 0) {
             uart_puts("Testing async UART...\r\n");
             uart_enable_rx_irq();
             int ret;
@@ -180,16 +182,25 @@ void shell() {
                 }
                 // uart_async_puts("\r\n");
             }
-            // char ch;
-            // while (1) {
-            //     ch = uart_async_getc();
-            //     if (ch == 'q') {
-            //         uart_disable_irq();
-            //         uart_puts("Exiting async UART test...\r\n");
-            //         break;
-            //     }
-            //     uart_async_putc(ch);
-            // }
+        }
+        else if (strcmp(cmd_name, "setTimeout") == 0) {
+            if (cmd.argc != 2) {
+                uart_puts("Usage: setTimeout <message> <num_sec>\r\n");
+                continue;
+            }
+            char* msg = cmd.args[0];
+            int num_sec = atoi(cmd.args[1]);
+            unsigned long long time = get_time();
+
+            uart_puts("Start timeout at: ");
+            uart_hex(time);
+            uart_puts("  Message: ");
+            uart_puts(msg);
+            uart_puts("  num_sec: ");
+            uart_int(num_sec);
+            uart_puts("\r\n");
+            
+            set_timeout(msg, num_sec);
         }
         else if (strcmp(cmd_name, "memAlloc") == 0) {
             char num_mem[6];

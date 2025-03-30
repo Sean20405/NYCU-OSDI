@@ -45,10 +45,10 @@ void irq_entry() {
     }
 }
 
-void enable_irq() {
+void enable_irq_el1() {
     asm volatile("msr daifclr, #0xf\n");
 }
 
-void disable_irq() {
+void disable_irq_el1() {
     asm volatile("msr daifset, #0xf\n");
 }

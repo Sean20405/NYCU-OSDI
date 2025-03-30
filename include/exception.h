@@ -23,7 +23,7 @@
 
 void exception_entry();
 void irq_entry();
-void enable_irq();
-void disable_irq();
+void enable_irq_el1();
+void disable_irq_el1();
 
 #endif /* EXCEPTION_H */
