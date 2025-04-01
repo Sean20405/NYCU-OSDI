@@ -23,7 +23,7 @@ void exec(char* filename) {
        "msr sp_el0, %1\n"
        "eret"
        :
-       : "r"(exec_addr), "r"((unsigned long)stack_top)
+       : "r"(exec_addr), "r"((unsigned long)program_stack)
        : "x5"
     );
 }
