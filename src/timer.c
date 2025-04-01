@@ -1,10 +1,12 @@
 #include "timer.h"
 
+#define TIMER_MSG_SIZE 64
+
 struct Timer {
     struct Timer* prev;
     struct Timer* next;
     timer_callback callback;
-    char *msg;
+    char msg[TIMER_MSG_SIZE];
     int expiration;  // Unit: tick
 };
 
@@ -123,7 +125,7 @@ void set_timeout(char* msg, int sec) {
 }
 
 void add_timer(timer_callback callback, char* msg, unsigned long long tick) {
-    struct Timer* new_timer = (struct Timer*)simple_alloc((sizeof(struct Timer) + 7) & ~7);
+    struct Timer* new_timer = (struct Timer*)simple_alloc(sizeof(struct Timer));
     if (new_timer == NULL) {
         uart_puts("Failed to allocate memory for timer\r\n");
         return;
