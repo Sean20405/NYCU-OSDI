@@ -172,6 +172,8 @@ void* _alloc(unsigned int size) {
         return NULL;
     }
 
+    size = round(size);  // Round up to the nearest page size
+
     // Calculate the order of the block
     int order = get_order(size);
 

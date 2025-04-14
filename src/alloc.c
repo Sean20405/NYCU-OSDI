@@ -48,13 +48,13 @@ void free(void *ptr) {
 
 void test_alloc() {
     uart_puts("Testing memory allocation...\n");
-    char *ptr1 = (char *)alloc(4096);
-    char *ptr2 = (char *)alloc(4096);
-    char *ptr3 = (char *)alloc(4096);
-    char *ptr4 = (char *)alloc(4096);
+    char *ptr1 = (char *)alloc(4000);
+    char *ptr2 = (char *)alloc(8000);
+    char *ptr3 = (char *)alloc(4000);
+    char *ptr4 = (char *)alloc(4000);
 
     free(ptr1);
-    free(ptr3);
     free(ptr2);
+    free(ptr3);
     free(ptr4);
 }
