@@ -45,6 +45,48 @@ int atoi(char *str) {
 }
 
 /**
+ * itoa - Converts an integer to a string
+ * 
+ * @param num: The integer to convert
+ * @return Pointer to a character array containing the string representation of the integer
+ */
+char* itoa(int num) {
+    static char buffer[12]; // Enough to hold 32-bit integer
+    int i = 0;
+    int is_negative = 0;
+    
+    // Handle negative numbers
+    if (num < 0) {
+        is_negative = 1;
+        num = -num;
+    }
+    
+    if (num == 0) {
+        buffer[i++] = '0';
+    } else {
+        while (num > 0) {
+            buffer[i++] = (num % 10) + '0';
+            num /= 10;
+        }
+        
+        // Add negative sign if necessary
+        if (is_negative) {
+            buffer[i++] = '-';
+        }
+    }
+    buffer[i] = '\0';
+    
+    // Reverse the string
+    for (int j = 0; j < i / 2; j++) {
+        char temp = buffer[j];
+        buffer[j] = buffer[i - j - 1];
+        buffer[i - j - 1] = temp;
+    }
+    
+    return buffer;
+}
+
+/**
  * be2le_u32 - Converts a big-endian 32-bit unsigned integer to little-endian
  * 
  * @param be The big-endian 32-bit unsigned integer

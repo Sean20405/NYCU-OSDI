@@ -7,7 +7,8 @@ void cmd_help_msg() {
     uart_puts("cat        :print the content of a file\r\n");
     uart_puts("ls         :list all files in the archive\r\n");
     uart_puts("exec       :execute a program\r\n");
-    uart_puts("test       :test async UART\r\n");
+    uart_puts("test_async :test async UART\r\n");
+    uart_puts("test_alloc :test memory allocation\r\n");
     uart_puts("setTimeout : set a timeout and print a msg\r\n");
     uart_puts("memAlloc   :allocate memory\r\n");
     uart_puts("reboot     :reboot the system\r\n");
@@ -149,6 +150,9 @@ void shell() {
         }
         else if (strcmp(cmd_name, "test_async") == 0) {
             test_uart_async();
+        }
+        else if (strcmp(cmd_name, "test_alloc") == 0) {
+            test_alloc();
         }
         else if (strcmp(cmd_name, "setTimeout") == 0) {
             if (cmd.argc != 2) {

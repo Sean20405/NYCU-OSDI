@@ -2,6 +2,7 @@
 #include "shell.h"
 #include "devicetree.h"
 #include "timer.h"
+#include "mm.h"
 
 void main() {
     // Get the address of the device tree blob
@@ -19,9 +20,12 @@ void main() {
         return;
     }
 
+    mm_init();
+
     enable_irq_el1();
 
-    add_timer(print_uptime, NULL, 2 * get_freq());
+    // Lab3 Basic 2: Print uptime every 2 seconds
+    // add_timer(print_uptime, NULL, 2 * get_freq());
 
     shell();
 }

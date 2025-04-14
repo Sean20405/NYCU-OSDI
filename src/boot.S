@@ -2,7 +2,7 @@
 
 .global _start
 _start:  // read cpu id, stop slave cores
-    // mov     x20, x0        // x20: dtb_addr. WARNING: only used for debugging
+    mov     x20, x0        // x20: dtb_addr. WARNING: only used for debugging
     mrs     x0, mpidr_el1  // read multiprocessor id register
     and     x0, x0, #0xff  // get cpu id
     cbz     x0, master     // if cpu id is 0, branch to master
@@ -25,6 +25,17 @@ master:
 
     // Call the main function
     bl      main
+
+memzero: 
+    /** 
+     * Set the memory to zero
+     * x0: pointer to the memory region
+     * x1: size of the memory region 
+     */
+	str     xzr, [x0], #8
+	subs    x1, x1, #1
+	b.ne    memzero
+	ret
 
 proc_hang:
     wfe
