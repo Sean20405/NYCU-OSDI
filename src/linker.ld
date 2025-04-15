@@ -13,5 +13,6 @@ SECTIONS
   __bss_end = .;
   _end = .;
 
+  . = ALIGN(0x10);
   __stack_top = . + 0x10000;  /* 64KB stack */
 }

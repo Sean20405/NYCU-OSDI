@@ -1,6 +1,6 @@
 #include "mm.h"
 
-struct Block *free_list[MAX_ORDER];  // An array of double linked lists, where each index corresponds to a different order of blocks
+struct PageInfo *free_list[MAX_ORDER];  // An array of double linked lists, where each index corresponds to a different order of blocks
 struct PageInfo page_list[PAGE_NUM]; // Array to store the status of each page
 
 void *memory_start = NULL;
@@ -78,7 +78,7 @@ void print_free_page_msg(void* addr, int idx, int curr_idx, int order) {
 void print_free_list() {
     uart_puts("========== Free List ==========\n");
     for (int i = 0; i < MAX_ORDER; i++) {
-        struct Block *entry = free_list[i];
+        struct PageInfo *entry = free_list[i];
         uart_puts("Free list for order ");
         uart_puts(itoa(i));
         uart_puts(": ");
@@ -93,7 +93,7 @@ void print_free_list() {
 }
 
 // Add the entry to the front of the free list for the given order
-void add_to_free_list(struct Block *entry, int order) {
+void add_to_free_list(struct PageInfo *entry, int order) {
     if (entry == NULL || order < 0 || order >= MAX_ORDER) return;
     if (free_list[order] == NULL) {
         free_list[order] = entry;
@@ -110,7 +110,7 @@ void add_to_free_list(struct Block *entry, int order) {
     print_add_msg(entry->idx, order);
 }
 
-void rm_from_free_list(struct Block *entry, int order) {
+void rm_from_free_list(struct PageInfo *entry, int order) {
     if (entry == NULL || order < 0 || order >= MAX_ORDER) return;
     if (free_list[order] == entry) {  // At the front
         free_list[order] = entry->next;
@@ -148,7 +148,7 @@ void mm_init() {
     uart_puts("\r\n");
 
     for (int i=0; i<PAGE_NUM; i+=MAX_BLOCK_SIZE) {
-        struct Block *entry = (struct Block*)simple_alloc(sizeof(struct Block));
+        struct PageInfo *entry = page_list + i;
         entry->idx = i;
         add_to_free_list(entry, MAX_ORDER - 1);  // Add to the free list with the maximum order
         
@@ -175,13 +175,13 @@ void* _alloc(unsigned int size) {
     // Find a free block of the required size
     for (int i = order; i < MAX_ORDER; i++) {
         if (free_list[i] != NULL) {
-            struct Block *block = free_list[i];
+            struct PageInfo *block = free_list[i];
             rm_from_free_list(block, i);  // Remove from the free list          
 
             // Found a block in higher order, split it into smaller blocks
             while (i > order) {
                 i--;
-                struct Block *new_entry = (struct Block*)simple_alloc(sizeof(struct Block));
+                struct PageInfo *new_entry = block + (1 << i);
                 new_entry->idx = block->idx + (1 << i);
                 add_to_free_list(new_entry, i);
 
@@ -220,7 +220,7 @@ void _free(void *ptr) {
     int have_merged = 0;
     
     while (order < MAX_ORDER - 1) {
-        struct Block *buddy_entry = page_list[buddy_idx].entry_in_list;
+        struct PageInfo *buddy_entry = page_list[buddy_idx].entry_in_list;
 
         // uart_puts("[*] buddy idx: ");
         // if (buddy_entry != NULL) uart_puts(itoa(buddy_entry->idx));
@@ -267,7 +267,7 @@ void _free(void *ptr) {
             // have_merged = 1;
         }
         else {
-            struct Block *new_entry = (struct Block*)simple_alloc(sizeof(struct Block));
+            struct PageInfo *new_entry = page_list + curr_idx;
             new_entry->idx = curr_idx;
             add_to_free_list(new_entry, order);
 
