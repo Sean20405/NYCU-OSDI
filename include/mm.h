@@ -5,6 +5,13 @@
 #include "alloc.h"
 #include "utils.h"
 
+#define MAX_ORDER       14
+#define PAGE_SIZE       4096
+// #define MEMORY_SIZE     0x3C000000  // Unit: byte
+#define MEMORY_SIZE     0x10000000  // Unit: byte, TODO: for testing
+#define PAGE_NUM        (MEMORY_SIZE / PAGE_SIZE)
+#define MAX_BLOCK_SIZE  (1 << (MAX_ORDER - 1))  // Max number of pages in a block
+
 // The entry of the free list
 struct Block {
     int idx;            // Index in the frame array
@@ -13,8 +20,8 @@ struct Block {
 };
 
 struct PageInfo {
-    int order;
-    int allocated;
+    int order;  // Use for `mm`, represent the order of the page
+    int cache_order;  // Use for `kmem`, represent the order of the cache. -1 if not in cache
     struct Block *entry_in_list; // Pointer to the entry in the free list
 };
 

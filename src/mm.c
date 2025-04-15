@@ -1,12 +1,5 @@
 #include "mm.h"
 
-#define MAX_ORDER       14
-#define PAGE_SIZE       4096
-// #define MEMORY_SIZE     0x3C000000  // Unit: byte
-#define MEMORY_SIZE     0x10000000  // Unit: byte, TODO: for testing
-#define PAGE_NUM        (MEMORY_SIZE / PAGE_SIZE)
-#define MAX_BLOCK_SIZE  (1 << (MAX_ORDER - 1))  // Max number of pages in a block
-
 struct Block *free_list[MAX_ORDER];  // An array of double linked lists, where each index corresponds to a different order of blocks
 struct PageInfo page_list[PAGE_NUM]; // Array to store the status of each page
 
@@ -160,9 +153,11 @@ void mm_init() {
         add_to_free_list(entry, MAX_ORDER - 1);  // Add to the free list with the maximum order
         
         page_list[i].order = MAX_ORDER - 1;
-        page_list[i].allocated = 0;  // Mark as free
+        // page_list[i].allocated = 0;  // Mark as free
         page_list[i].entry_in_list = entry;  // Link to the free list entry
     }
+
+    for (int i=0; i<PAGE_NUM; i++) page_list[i].cache_order = -1;
 
     print_free_list();
 }
@@ -191,21 +186,20 @@ void* _alloc(unsigned int size) {
                 add_to_free_list(new_entry, i);
 
                 page_list[new_entry->idx].order = i;
-                page_list[new_entry->idx].allocated = 0;  // Mark as free
                 page_list[new_entry->idx].entry_in_list = new_entry;  // Link to the free list entry
             }
 
             // Mark the block as allocated
             page_list[block->idx].order = order;
-            page_list[block->idx].allocated = 1;  // Mark as allocated
+            // page_list[block->idx].allocated = 1;  // Mark as allocated
             page_list[block->idx].entry_in_list = NULL;  // Unlink from the free list
             
             void *addr = memory_start + block->idx * PAGE_SIZE;
             print_alloc_page_msg(addr, block->idx, order);
+            print_free_list();
             return addr;
         }
     }
-
     return NULL;  // No suitable block found
 }
 
@@ -215,7 +209,9 @@ void _free(void *ptr) {
     int original_idx = (ptr - memory_start) / PAGE_SIZE;
 
     // Check if the pointer is valid
-    if (original_idx < 0 || original_idx >= PAGE_NUM || !page_list[original_idx].allocated) return;
+    if (original_idx < 0 || original_idx >= PAGE_NUM || page_list[original_idx].entry_in_list != NULL) {
+        return;
+    }
 
     // Merge with the buddy block if it is free
     int order = page_list[original_idx].order;
@@ -259,7 +255,7 @@ void _free(void *ptr) {
 
             // Update the page list
             // page_list[smaller_idx].allocated = 0;
-            page_list[bigger_idx].allocated = 0;
+            // page_list[bigger_idx].allocated = 0;
             page_list[smaller_idx].order = order;
             page_list[bigger_idx].order = -1;
             // page_list[smaller_idx].entry_in_list = new_entry;
@@ -277,7 +273,7 @@ void _free(void *ptr) {
 
             page_list[curr_idx].entry_in_list = new_entry;  // Link to the free list entry
             page_list[curr_idx].order = order;  // Update the order
-            page_list[curr_idx].allocated = 0;  // Mark as free
+            // page_list[curr_idx].allocated = 0;  // Mark as free
             break;
         }
     }
@@ -293,4 +289,5 @@ void _free(void *ptr) {
     // }
 
     print_free_page_msg(ptr, original_idx, curr_idx, order);
+    print_free_list();
 }

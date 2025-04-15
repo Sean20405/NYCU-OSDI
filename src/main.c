@@ -21,6 +21,7 @@ void main() {
     }
 
     mm_init();
+    kmem_cache_init();
 
     enable_irq_el1();
 
