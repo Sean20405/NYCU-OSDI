@@ -94,7 +94,7 @@ void kmem_cache_init() {
         }
     }
 
-    print_free_list();
+    // print_free_list();
 }
 
 void request_page(unsigned int order) {

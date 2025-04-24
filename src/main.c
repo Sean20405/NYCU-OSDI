@@ -3,11 +3,28 @@
 #include "devicetree.h"
 #include "timer.h"
 #include "mm.h"
+#include "sched.h"
+#include "utils.h"
 
 extern char *__stack_top;
 extern uint32_t cpio_addr;
 extern uint32_t cpio_end;
 extern uint32_t fdt_total_size;
+
+void foo(){
+    for(int i = 0; i < 10; ++i) {
+        unsigned int thread_id = ((struct ThreadTask *)get_current())->id;
+        uart_puts("Thread id: ");
+        uart_puts(itoa(thread_id));
+        uart_puts(" ");
+        uart_puts(itoa(i));
+        uart_puts("\n");
+        
+        delay(1000000);
+        schedule();
+    }
+    _exit();
+}
 
 void main() {
     // Get the address of the device tree blob
@@ -34,6 +51,12 @@ void main() {
     kmem_cache_init();
 
     enable_irq_el1();
+
+    sched_init();
+    for(int i = 0; i < 5; ++i) { // N should > 2
+        thread_create(foo);
+    }
+    idle();
 
     // Lab3 Basic 2: Print uptime every 2 seconds
     // add_timer(print_uptime, NULL, 2 * get_freq());

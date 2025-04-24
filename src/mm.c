@@ -120,7 +120,7 @@ void add_to_free_list(struct PageInfo *entry, int order) {
         free_list[order] = entry;
     }
 
-    print_add_msg(entry->idx, order);
+    // print_add_msg(entry->idx, order);
 }
 
 void rm_from_free_list(struct PageInfo *entry, int order) {
@@ -140,7 +140,7 @@ void rm_from_free_list(struct PageInfo *entry, int order) {
     entry->prev = NULL;
     // simple_free(buddy_entry);  // TODO: Maybe used a circular linked list to do simple_alloc and simple_free
 
-    print_rm_msg(entry->idx, order);
+    // print_rm_msg(entry->idx, order);
 }
 
 void mm_init() {
@@ -166,7 +166,7 @@ void mm_init() {
 
     for (int i=0; i<PAGE_NUM; i++) page_list[i].cache_order = -1;
 
-    print_free_list();
+    // print_free_list();
 }
 
 void* _alloc(unsigned int size) {
@@ -203,8 +203,8 @@ void* _alloc(unsigned int size) {
             page_list[block->idx].entry_in_list = NULL;  // Unlink from the free list
             
             void *addr = memory_start + block->idx * PAGE_SIZE;
-            print_alloc_page_msg(addr, block->idx, order);
-            print_free_list();
+            // print_alloc_page_msg(addr, block->idx, order);
+            // print_free_list();
             return addr;
         }
     }
@@ -240,13 +240,13 @@ void _free(void *ptr) {
         // uart_puts("\r\n");
 
         if (buddy_entry && page_list[buddy_idx].order == page_list[curr_idx].order) {  // Have buddy
-            uart_puts("[*] Buddy found! buddy idx: ");
-            uart_puts(itoa(buddy_entry->idx));
-            uart_puts(" for page ");
-            uart_puts(itoa(curr_idx));
-            uart_puts(" with order ");
-            uart_puts(itoa(order));
-            uart_puts("\r\n");
+            // uart_puts("[*] Buddy found! buddy idx: ");
+            // uart_puts(itoa(buddy_entry->idx));
+            // uart_puts(" for page ");
+            // uart_puts(itoa(curr_idx));
+            // uart_puts(" with order ");
+            // uart_puts(itoa(order));
+            // uart_puts("\r\n");
 
             // rm_from_free_list(page_list[curr_idx].entry_in_list, order);
             rm_from_free_list(buddy_entry, order);
@@ -296,8 +296,8 @@ void _free(void *ptr) {
     //     page_list[curr_idx].allocated = 0;  // Mark as free
     // }
 
-    print_free_page_msg(ptr, original_idx, curr_idx, order);
-    print_free_list();
+    // print_free_page_msg(ptr, original_idx, curr_idx, order);
+    // print_free_list();
 }
 
 void split(unsigned int idx, unsigned int order) {
@@ -325,15 +325,15 @@ void reserve(void *start, void *end) {
     unsigned int start_idx = (start - memory_start) / PAGE_SIZE;
     unsigned int end_idx = (end - memory_start) / PAGE_SIZE;
 
-    uart_puts("[x] Reserve memory from ");
-    uart_hex((unsigned long)start);
-    uart_puts(" (");
-    uart_puts(itoa(start_idx));
-    uart_puts(") to ");
-    uart_hex((unsigned long)end);
-    uart_puts(" (");
-    uart_puts(itoa(end_idx));
-    uart_puts(")\r\n");
+    // uart_puts("[x] Reserve memory from ");
+    // uart_hex((unsigned long)start);
+    // uart_puts(" (");
+    // uart_puts(itoa(start_idx));
+    // uart_puts(") to ");
+    // uart_hex((unsigned long)end);
+    // uart_puts(" (");
+    // uart_puts(itoa(end_idx));
+    // uart_puts(")\r\n");
 
     // Split the chunk
     for (int curr_order=MAX_ORDER-1; curr_order>0; curr_order--) {
@@ -348,26 +348,26 @@ void reserve(void *start, void *end) {
         // uart_puts("\r\n");
 
         if(start_block_idx == end_block_idx) {  // The whole interval is in the same block
-            uart_puts("[*] The whole interval is in the same block: ");
-            uart_puts(itoa(start_block_idx));
-            uart_puts(" with order ");
-            uart_puts(itoa(curr_order));
-            uart_puts("\r\n");
+            // uart_puts("[*] The whole interval is in the same block: ");
+            // uart_puts(itoa(start_block_idx));
+            // uart_puts(" with order ");
+            // uart_puts(itoa(curr_order));
+            // uart_puts("\r\n");
 
             if (page_list[start_block_idx].order == curr_order) {
                 split(start_block_idx, curr_order);
             }
         }
         else {
-            uart_puts("[*] The whole interval is in different blocks: ");
-            uart_puts(itoa(start_block_idx));
-            uart_puts(" with order ");
-            uart_puts(itoa(curr_order));
-            uart_puts(" and ");
-            uart_puts(itoa(end_block_idx));
-            uart_puts(" with order ");
-            uart_puts(itoa(curr_order));
-            uart_puts("\r\n");
+            // uart_puts("[*] The whole interval is in different blocks: ");
+            // uart_puts(itoa(start_block_idx));
+            // uart_puts(" with order ");
+            // uart_puts(itoa(curr_order));
+            // uart_puts(" and ");
+            // uart_puts(itoa(end_block_idx));
+            // uart_puts(" with order ");
+            // uart_puts(itoa(curr_order));
+            // uart_puts("\r\n");
 
             if (page_list[start_block_idx].order == curr_order) {
                 split(start_block_idx, curr_order);
@@ -392,5 +392,5 @@ void reserve(void *start, void *end) {
         i += (1 << entry->order);
     }
 
-    print_free_list();
+    // print_free_list();
 }
