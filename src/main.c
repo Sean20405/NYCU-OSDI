@@ -5,6 +5,7 @@
 #include "mm.h"
 #include "sched.h"
 #include "utils.h"
+#include "syscall.h"
 
 extern char *__stack_top;
 extern uint32_t cpio_addr;
@@ -24,6 +25,17 @@ void foo(){
         schedule();
     }
     _exit();
+}
+
+void test_syscall() {
+    get_pid();
+    uart_read();
+    uart_write();
+    _exec();
+    fork();
+    exit();
+    mbox_call();
+    kill();
 }
 
 void main() {
@@ -52,11 +64,13 @@ void main() {
 
     enable_irq_el1();
 
-    sched_init();
-    for(int i = 0; i < 5; ++i) { // N should > 2
-        thread_create(foo);
-    }
-    idle();
+    test_syscall();
+
+    // sched_init();
+    // for(int i = 0; i < 5; ++i) { // N should > 2
+    //     thread_create(foo);
+    // }
+    // idle();
 
     // Lab3 Basic 2: Print uptime every 2 seconds
     // add_timer(print_uptime, NULL, 2 * get_freq());

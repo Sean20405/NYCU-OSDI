@@ -1,5 +1,5 @@
-#ifndef THREAD_H
-#define THREAD_H
+#ifndef SCHED_H
+#define SCHED_H
 
 #include <stddef.h>
 #include "alloc.h"
@@ -41,6 +41,7 @@ struct ThreadTask {
 
 #ifndef __ASSEMBLER__
 extern struct ThreadTask* get_current(void);
+extern void set_current(struct ThreadTask *task);
 extern void cpu_switch_to(struct ThreadTask *prev, struct ThreadTask *next);
 extern void ret_from_fork(void);
 #endif
@@ -52,4 +53,4 @@ void schedule();
 void kill_zombies();
 void idle();
 
-#endif /* THREAD_H */
+#endif /* SCHED_H */

@@ -3,6 +3,7 @@
 
 #include "uart.h"
 #include "timer.h"
+#include "syscall.h"
 
 #define IRQ_BASE            0x3f00b000
 
@@ -20,6 +21,13 @@
 #define CORE0_IRQ_SOURCE    ((volatile unsigned int *)0x40000060)
 #define TIMER_IRQ           (1 << 1)
 #define GPU_IRQ             (1 << 8)  // mini UART IRQ bit
+
+struct TrapFrame {
+    unsigned long x[31];    // x0-x30
+    unsigned long sp_el0;   // stack pointer for EL0
+    unsigned long spsr_el1; // saved program status register
+    unsigned long elr_el1;  // exception link register
+};
 
 void exception_entry();
 void irq_entry();

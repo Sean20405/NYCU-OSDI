@@ -49,6 +49,54 @@ void irq_entry() {
     enable_irq_el1();
 }
 
+void el0_sync_entry(unsigned long sp, unsigned long esr_el1) {
+    struct TrapFrame *trapframe = (struct TrapFrame *)sp;
+    unsigned long ec = (esr_el1 >> 26) & 0x3f;  // Extract the exception class
+
+    if (ec == 0x15) {  // System call
+        syscall_entry(trapframe);
+    }
+    else {
+        uart_puts("Unknown exception class\r\n");
+    }
+    return;
+}
+
+void syscall_entry(struct TrapFrame *trapframe) {
+    unsigned long syscall_num = trapframe->x[8];  // x8 contains the syscall number
+
+    switch (syscall_num) {
+        case SYS_GETPID_NUM:
+            sys_getpid(trapframe);
+            break;
+        case SYS_UART_READ_NUM:
+            sys_uart_read(trapframe);
+            break;
+        case SYS_UART_WRITE_NUM:
+            sys_uart_write(trapframe);
+            break;
+        case SYS_EXEC_NUM:
+            sys_exec(trapframe);
+            break;
+        case SYS_FORK_NUM:
+            sys_fork(trapframe);
+            break;
+        case SYS_EXIT_NUM:
+            sys_exit(trapframe);
+            break;
+        case SYS_MBOX_CALL_NUM:
+            sys_mbox_call(trapframe);
+            break;
+        case SYS_KILL_NUM:
+            sys_kill(trapframe);
+            break;
+        default:
+            uart_puts("Unknown syscall number: ");
+            uart_hex(syscall_num);
+            uart_puts("\r\n");
+    }
+}
+
 void enable_irq_el1() {
     asm volatile("msr daifclr, #0xf\n");
 }
