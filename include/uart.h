@@ -22,6 +22,7 @@ void uart_flush();
 void uart_flush_rx();
 void uart_flush_tx();
 char uart_getc();               // Read a char
+char *uart_getn(char *buffer, unsigned int n);  // Read n chars
 char *uart_gets(char *buffer);  // Read a string
 void uart_putc(char ch);        // Write a char
 void uart_puts(char *str);      // Write a string

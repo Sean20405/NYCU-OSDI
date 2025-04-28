@@ -30,9 +30,3 @@ set_current:
     mov x1, x0
     msr tpidr_el1, x1
     ret
-
-.globl ret_from_fork
-ret_from_fork:
-    // bl    schedule_tail
-    mov    x0, x20     // arg
-    blr    x19         // x19: the address of the function

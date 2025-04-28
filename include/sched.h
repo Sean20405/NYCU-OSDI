@@ -4,10 +4,11 @@
 #include <stddef.h>
 #include "alloc.h"
 #include "uart.h"
+#include "exec.h"
 
 #define MAX_TASKS 64
 #define DEFAULT_PRIORITY 10
-#define THREAD_SIZE 0x1000  // 4KB stack size
+#define THREAD_STACK_SIZE 0x1000  // 4KB stack size
 #define TASK_READY 0 // Task state: ready
 #define TASK_RUNNING 1 // Task state: running
 #define TASK_BLOCKED 2 // Task state: blocked
@@ -36,6 +37,8 @@ struct ThreadTask {
     long counter;
     long priority;
     long preempt_count;  // Whether this task can be preempted currently, non-zero means cannot.
+    void* kernel_stack;
+    void* user_stack;
     struct ThreadTask *next;
 };
 
@@ -46,11 +49,18 @@ extern void cpu_switch_to(struct ThreadTask *prev, struct ThreadTask *next);
 extern void ret_from_fork(void);
 #endif
 
+extern struct ThreadTask *ready_queue;
+extern struct ThreadTask *wait_queue;
+extern struct ThreadTask *zombie_queue;
+extern unsigned int thread_cnt;
+
 void sched_init();
-int thread_create(void (*callback)(void));
+struct ThreadTask* thread_create(void (*callback)(void));
 void _exit();
 void schedule();
 void kill_zombies();
 void idle();
+
+void exec_thread();
 
 #endif /* SCHED_H */

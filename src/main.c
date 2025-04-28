@@ -6,6 +6,7 @@
 #include "sched.h"
 #include "utils.h"
 #include "syscall.h"
+#include "exec.h"
 
 extern char *__stack_top;
 extern uint32_t cpio_addr;
@@ -27,15 +28,118 @@ void foo(){
     _exit();
 }
 
-void test_syscall() {
-    get_pid();
-    uart_read();
-    uart_write();
-    _exec();
-    fork();
+void fork_test(){
+    uart_puts("\r\nFork Test, pid ");
+    uart_puts(itoa(get_pid()));
+    uart_puts("\r\n");
+
+    int cnt = 1;
+    int ret = 0;
+    if ((ret = fork()) == 0) { // child
+        long long cur_sp;
+        asm volatile("mov %0, sp" : "=r"(cur_sp));
+
+        uart_puts("first child pid: ");
+        uart_puts(itoa(get_pid()));
+        uart_puts(", cnt: ");
+        uart_puts(itoa(cnt));
+        uart_puts(", ptr: ");
+        uart_hex(&cnt);
+        uart_puts(", sp: ");
+        uart_hex(cur_sp);
+        uart_puts("\r\n");
+
+        ++cnt;
+
+        if ((ret = fork()) != 0){
+            asm volatile("mov %0, sp" : "=r"(cur_sp));
+
+            uart_puts("first child pid: ");
+            uart_puts(itoa(get_pid()));
+            uart_puts(", cnt: ");
+            uart_puts(itoa(cnt));
+            uart_puts(", ptr: ");
+            uart_hex(&cnt);
+            uart_puts(", sp: ");
+            uart_hex(cur_sp);
+            uart_puts("\r\n");
+        }
+        else{
+            while (cnt < 5) {
+                asm volatile("mov %0, sp" : "=r"(cur_sp));
+                
+                uart_puts("second child pid: ");
+                uart_puts(itoa(get_pid()));
+                uart_puts(", cnt: ");
+                uart_puts(itoa(cnt));
+                uart_puts(", ptr: ");
+                uart_hex(&cnt);
+                uart_puts(", sp: ");
+                uart_hex(cur_sp);
+                uart_puts("\r\n");
+
+                delay(50000000);
+                ++cnt;
+            }
+            exit();
+        }
+        exit();
+    }
+    else {
+        uart_puts("parent here, pid ");
+        uart_puts(itoa(get_pid()));
+        uart_puts(", child ");
+        uart_puts(itoa(ret));
+        uart_puts("\r\n");
+    }
     exit();
-    mbox_call();
-    kill();
+}
+
+void test_syscall() {
+    /******** PID ********/
+    // int pid = get_pid();
+    // uart_puts("sys_getpid: ");
+    // uart_puts(itoa(pid));
+    // uart_puts("\n");
+
+    /******** Read & Write ********/
+    // char buf[32];
+    // int ret = uart_read(buf, 10);
+    // uart_puts("sys_uart_read: ");
+    // if (ret > 0) {
+    //     uart_puts(buf);
+    //     uart_puts("\n");
+    // }
+    // else {
+    //     uart_puts("Failed to read from UART\n");
+    // }
+    // ret = uart_write(buf, 10);
+    // if (ret > 0) {
+    //     uart_puts("sys_uart_write: ");
+    //     uart_puts(buf);
+    //     uart_puts("\n");
+    // }
+    // else {
+    //     uart_puts("Failed to write to UART\n");
+    // }
+    // _exec();
+
+    /******** Fork ********/
+    struct ThreadTask* new_thread = thread_create(fork_test);
+
+    asm volatile(
+        "msr tpidr_el1, %0\n"
+        "mov x5, 0x0\n"
+        "msr spsr_el1, x5\n"
+        "msr elr_el1, %1\n"
+        "msr sp_el0, %2\n"
+        "mov sp, %3\n"
+        "eret"
+        :
+        : "r"(new_thread), "r"(new_thread->cpu_context.lr), "r"(new_thread->cpu_context.sp), 
+          "r"(new_thread->kernel_stack + THREAD_STACK_SIZE)
+        : "x5"
+    );
 }
 
 void main() {
@@ -64,16 +168,29 @@ void main() {
 
     enable_irq_el1();
 
-    test_syscall();
+    sched_init();
 
+    timer_init();
+
+    // Lab5 Basic 1: Threads
     // sched_init();
     // for(int i = 0; i < 5; ++i) { // N should > 2
     //     thread_create(foo);
     // }
     // idle();
 
+    // Lab5 Basic 2: Fork
+    thread_create(test_syscall);
+
+    // thread_create(exec_thread);
+    // print_queue(ready_queue);
+
+    while(1) {
+        schedule();
+    }
+
     // Lab3 Basic 2: Print uptime every 2 seconds
     // add_timer(print_uptime, NULL, 2 * get_freq());
 
-    shell();
+    // shell();
 }

@@ -49,6 +49,25 @@ void print_uptime(char* _) {
     add_timer(print_uptime, NULL, 2 * freq);
 }
 
+void keep_schedule(char* _) {
+    unsigned long long freq = get_freq();
+    freq >>= 5;
+    add_timer(keep_schedule, NULL, 2 * freq);
+
+    schedule();
+}
+
+void timer_init() {
+    timer_enable_irq();
+
+    unsigned long tmp;
+    asm volatile("mrs %0, cntkctl_el1" : "=r"(tmp));
+    tmp |= 1;
+    asm volatile("msr cntkctl_el1, %0" : : "r"(tmp));
+
+    add_timer(keep_schedule, NULL, get_freq() >> 5);
+}
+
 void core_timer_handler() {
     int curr_tick = get_tick();
 

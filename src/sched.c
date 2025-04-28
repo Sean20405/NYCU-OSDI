@@ -1,11 +1,8 @@
 #include "sched.h"
 
-// extern void ret_from_fork(void);
-// extern void cpu_switch_to(struct ThreadTask *prev, struct ThreadTask *next);  
-
-static struct ThreadTask *ready_queue = NULL;
-static struct ThreadTask *wait_queue = NULL;
-static struct ThreadTask *zombie_queue = NULL;
+struct ThreadTask *ready_queue = NULL;
+struct ThreadTask *wait_queue = NULL;
+struct ThreadTask *zombie_queue = NULL;
 
 unsigned int thread_cnt = 0;
 
@@ -75,6 +72,7 @@ void sched_init() {
     ready_queue = NULL;
     wait_queue = NULL;
     zombie_queue = NULL;
+    thread_cnt = 0;
 
     // Create a task for "idle"
     struct ThreadTask *idle_task = (struct ThreadTask *)alloc(sizeof(struct ThreadTask));
@@ -84,12 +82,12 @@ void sched_init() {
     }
 
     thread_create(idle);
+    set_current(idle_task);
 }
 
-int thread_create(void (*callback)(void)) {
-    size_t alloc_size = sizeof(struct ThreadTask) + THREAD_SIZE;
+struct ThreadTask* thread_create(void (*callback)(void)) {
     // Allocate memory for the task
-    struct ThreadTask *task = (struct ThreadTask *)alloc(alloc_size);
+    struct ThreadTask *task = (struct ThreadTask *)alloc(sizeof(struct ThreadTask));
     if (task == NULL) {
         uart_puts("Failed to allocate memory for task!\n");
         return -1;
@@ -101,21 +99,53 @@ int thread_create(void (*callback)(void)) {
     task->counter = DEFAULT_PRIORITY;
     task->priority = DEFAULT_PRIORITY;
     task->preempt_count = 1;
+    task->kernel_stack = alloc(THREAD_STACK_SIZE);
+    if (task->kernel_stack == NULL) {
+        uart_puts("Failed to allocate memory for task stack!\n");
+        free(task);
+        return -1;
+    }
+    task->user_stack = alloc(THREAD_STACK_SIZE);
+    if (task->user_stack == NULL) {
+        uart_puts("Failed to allocate memory for task stack!\n");
+        free(task->kernel_stack);
+        free(task);
+        return -1;
+    }
     task->next = NULL;
 
     memset((void*)&task->cpu_context, 0, sizeof(struct cpu_context));
     task->cpu_context.lr = (unsigned long)callback; // Set the entry point of the task
-    task->cpu_context.sp = (unsigned long)task + THREAD_SIZE; // Set the stack pointer
-    task->cpu_context.fp = (unsigned long)task + THREAD_SIZE; // Set the frame pointer
+    task->cpu_context.sp = (unsigned long)task->user_stack + THREAD_STACK_SIZE;
+    task->cpu_context.fp = task->cpu_context.sp;
 
     // Add the task to the ready queue
     add_thread_task(&ready_queue, task);
 
-    return 0;
+    return task;
+}
+
+struct ThreadTask* get_thread_task_by_id(int pid) {
+    struct ThreadTask *current = ready_queue;
+    while (current != NULL) {
+        if (current->id == pid) {
+            return current;
+        }
+        current = current->next;
+    }
+
+    current = wait_queue;
+    while (current != NULL) {
+        if (current->id == pid) {
+            return current;
+        }
+        current = current->next;
+    }
+    
+    return NULL;
 }
 
 void _exit() {
-    // uart_puts("EXITTTTT\r\n");
     struct ThreadTask *curr = get_current();
     if (curr == NULL) return;
 
@@ -129,6 +159,9 @@ void _exit() {
 }
 
 void schedule() {
+    // disable_irq_el1();
+    // timer_disable_irq();
+
     struct ThreadTask *prev = get_current();
     if (prev == NULL) {
         ready_queue->state = TASK_RUNNING;
@@ -173,17 +206,20 @@ void schedule() {
         // print_queue(ready_queue);
 
         // Switch to the next task
-        // uart_puts("Switching to next task...\n");
         next->state = TASK_RUNNING;
         cpu_switch_to(prev, next);
-        // uart_puts("Switched to next task!\n");
     }
+
+    // timer_enable_irq();
+    // enable_irq_el1();
     return;
 }
 
 void kill_zombies() {
     struct ThreadTask *zombie = pop_thread_task(&zombie_queue);
     while (zombie != NULL) {
+        free(zombie->kernel_stack);
+        free(zombie->user_stack);
         free(zombie);
         zombie = pop_thread_task(&zombie_queue);
     }
@@ -191,7 +227,6 @@ void kill_zombies() {
 
 void idle() {
     while (1) {
-        // uart_puts("Idle task running...\n");
         kill_zombies();
         schedule();
     }

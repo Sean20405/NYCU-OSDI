@@ -19,7 +19,7 @@ exception_vector_table:
   b exception_handler
   .align 7
 
-  b exception_handler
+  b el0_sync_handler
   .align 7
   b irq_handler
   .align 7

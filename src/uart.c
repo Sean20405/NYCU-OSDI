@@ -86,6 +86,23 @@ char uart_getc() {
 }
 
 
+char *uart_getn(char *buffer, unsigned int n) {
+    char *ptr = buffer;
+    char ch;
+    unsigned int i;
+    for (i = 0; i < n; i++) {
+        ch = uart_getc();
+        if (ch == '\r') break;
+        // uart_putc(ch);
+        *ptr = ch;
+        ptr++;
+    }
+    if (ch == '\r') uart_puts("\r\n");
+    *ptr = '\0';
+    return buffer;
+}
+
+
 char *uart_gets(char *buffer) {
     char *ptr = buffer;
     char ch;
