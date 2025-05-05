@@ -1,11 +1,14 @@
 import struct
 import serial
 from time import sleep
+import os
 
 kernel_path = 'build/kernel8.img'
 port_path = '/dev/ttyUSB0'
 baud_rate = 115200
 block_size = 64
+
+os.system("make")  
 
 with open(kernel_path, 'rb') as f:
     kernel_data = f.read()
