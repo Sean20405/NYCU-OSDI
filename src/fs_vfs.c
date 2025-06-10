@@ -147,6 +147,14 @@ int vfs_write(struct file* file, const void* buf, size_t len) {
 }
 
 int vfs_read(struct file* file, void* buf, size_t len) {
+    uart_puts("[vfs_read] called with file: ");
+    uart_hex((unsigned long)file);
+    uart_puts(" and buf: ");
+    uart_hex((unsigned long)buf);
+    uart_puts(" and len: ");
+    uart_puts(itoa(len));
+    uart_puts("\r\n");
+
     if (file == NULL || buf == NULL) return EINVAL_VFS;
     if (len == 0) return 0;
 
@@ -250,10 +258,6 @@ int vfs_mkdir(const char* pathname) {
 }
 
 int vfs_mknod(const char* pathname, struct file_operations* f_ops) {
-    uart_puts("[vfs_mknod] called with pathname: ");
-    uart_puts(pathname);
-    uart_puts("\r\n");
-
     if (pathname == NULL) {
         return EINVAL_VFS;
     }
@@ -266,7 +270,9 @@ int vfs_mknod(const char* pathname, struct file_operations* f_ops) {
         uart_puts("\r\n");
         return ret; // Return the error code from vfs_open
     }
-    dev->f_ops = f_ops;
+
+    dev->vnode->f_ops = f_ops;
+    
     ret = vfs_close(dev);
     if (ret != 0) {
         uart_puts("[vfs_mknod] vfs_close failed: ");
@@ -310,8 +316,8 @@ int vfs_mount(const char* target_pathname, const char* filesystem_name) {
         uart_puts("\r\n");
         return ENOSYS_VFS; // Target path does not support mounting
     }
-    if (target_vnode->mount != NULL) {
-        uart_puts("Target path is already mounted: ");
+    if (target_vnode->mount != NULL || target_vnode->parent_is_mount) {
+        uart_puts("[vfs_mount] Target path is already mounted: ");
         uart_puts(target_pathname);
         uart_puts("\r\n");
         return EBUSY_VFS; // Target path is already mounted

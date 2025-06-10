@@ -79,6 +79,7 @@ int tmpfs_setup_mount(struct filesystem* fs, struct mount* mount) {
     mount->root->v_ops = &tmpfs_v_ops;
     mount->root->f_ops = &tmpfs_f_ops;
     mount->root->internal = tmpfs_root;
+    mount->root->parent_is_mount = 1;
     
     return 0; // Success
 }
@@ -155,6 +156,7 @@ int tmpfs_create_or_mkdir(struct vnode* dir_node, struct vnode** target, const c
     new_vnode->f_ops = &tmpfs_f_ops;
     new_vnode->internal = new_internal;
     new_vnode->parent = dir_node;
+    new_vnode->parent_is_mount = 0;
 
     parent_internal->children[parent_internal->num_children++] = new_vnode;
     *target = new_vnode;
@@ -185,7 +187,7 @@ int tmpfs_open(struct vnode* file_node, struct file** target) {
     if (!file_node || !target || !(*target)) { // Check if *target itself is NULL (should be pre-allocated by vfs_open)
         return EINVAL_VFS;
     }
-    
+
     (*target)->f_pos = 0;
     (*target)->vnode = file_node;
     (*target)->f_ops = file_node->f_ops;

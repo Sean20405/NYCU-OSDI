@@ -6,6 +6,7 @@
 #include "fs_tmpfs.h"
 #include "fs_initramfs.h"
 #include "dev_uart.h"
+#include "dev_framebuffer.h"
 
 // Placeholder for O_CREAT flag, typically from <fcntl.h>
 #define O_CREAT 00000100  // Example value, ensure it matches your system\'s O_CREAT
@@ -41,6 +42,7 @@ struct vnode {
     struct file_operations* f_ops;
     void* internal;
     struct vnode* parent;
+    int parent_is_mount; // Indicates if the parent vnode is a mount point
 };
 
 // file handle

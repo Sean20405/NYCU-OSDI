@@ -48,6 +48,7 @@ int initramfs_setup_mount(struct filesystem* fs, struct mount* mount) {
     mount->root->v_ops = &initramfs_v_ops;
     mount->root->f_ops = &initramfs_f_ops;
     mount->root->internal = initramfs_root;
+    mount->root->parent_is_mount = 1;
 
     return 0; // Success
 }
@@ -103,6 +104,7 @@ void initramfs_init(struct vnode* rootvnode) {
             new_vnode->f_ops = &initramfs_f_ops;
             new_vnode->internal = new_node;
             new_vnode->parent = rootvnode;
+            new_vnode->parent_is_mount = 0;
 
             ((struct initramfs_node*)rootvnode->internal)->children[((struct initramfs_node*)rootvnode->internal)->num_children++] = new_vnode;
 

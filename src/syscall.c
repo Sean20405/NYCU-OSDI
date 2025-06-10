@@ -267,8 +267,8 @@ void sys_open(struct TrapFrame *trapframe) {
                 return;
             }
 
-            uart_puts("[INFO] sys_open: opened file successfully, curr->fd_table[i] address @");
-            uart_hex((unsigned long)curr->fd_table[i]);
+            uart_puts("[INFO] sys_open: opened file successfully, file->vnode address @");
+            uart_hex((unsigned long)curr->fd_table[i]->vnode);
             uart_puts(" (task ");
             uart_puts(itoa(curr->id));
             uart_puts(")\r\n");
@@ -299,6 +299,7 @@ void sys_close(struct TrapFrame *trapframe) {
 
     // Close the file
     int ret = vfs_close(curr->fd_table[fd]);
+    curr->fd_table[fd] = NULL;  // Clear the file descriptor
     trapframe->x[0] = ret;
 }
 
@@ -324,6 +325,10 @@ void sys_write(struct TrapFrame *trapframe) {
     uart_puts(itoa(count));
     uart_puts(")\r\n");
 
+    uart_puts("[INFO] sys_write: buf content: ");
+    uart_puts((char *)buf);
+    uart_puts("\r\n");
+
     struct ThreadTask *curr = get_current();
     if (curr == NULL) {
         uart_puts("[WARN] sys_write: current task is NULL\r\n");
@@ -333,7 +338,7 @@ void sys_write(struct TrapFrame *trapframe) {
 
     struct file *file = curr->fd_table[fd];
     uart_puts("[INFO] sys_write: file address @");
-    uart_hex((unsigned long)file);
+    uart_hex((unsigned long)file->vnode);
     uart_puts(" (task ");
     uart_puts(itoa(curr->id));
     uart_puts(")\r\n");
@@ -349,6 +354,7 @@ void sys_write(struct TrapFrame *trapframe) {
         trapframe->x[0] = ret;
         return;
     }
+
     trapframe->x[0] = ret;
 }
 
@@ -385,6 +391,9 @@ void sys_read(struct TrapFrame *trapframe) {
         trapframe->x[0] = ret;
         return;
     }
+    uart_puts("[INFO] sys_read: read content: ");
+    uart_puts((char *)buf);
+    uart_puts("\r\n");
     trapframe->x[0] = ret;
 }
 
