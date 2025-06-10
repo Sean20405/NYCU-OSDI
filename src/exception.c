@@ -127,6 +127,12 @@ void syscall_entry(struct TrapFrame *trapframe) {
         case SYS_CHDIR_NUM:
             sys_chdir(trapframe);
             break;
+        case SYS_LSEEK64_NUM:
+            sys_lseek64(trapframe);
+            break;
+        case SYS_IOCTL_NUM:
+            sys_ioctl(trapframe);
+            break;
         default:
             uart_puts("Unknown syscall number: ");
             uart_hex(syscall_num);

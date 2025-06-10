@@ -164,6 +164,14 @@ int vfs_read(struct file* file, void* buf, size_t len) {
     return ENOSYS_VFS;
 }
 
+int vfs_lseek64(struct file* file, long offset, int whence) {
+    if (file == NULL) return EINVAL_VFS;
+    if (file->f_ops && file->f_ops->lseek64) {
+        return file->f_ops->lseek64(file, offset, whence);
+    }
+    return ENOSYS_VFS;
+}
+
 int vfs_mkdir(const char* pathname) {
     uart_puts("[vfs_mkdir] called with pathname: ");
     uart_puts(pathname);
@@ -565,4 +573,5 @@ void vfs_init() {
 
     vfs_mkdir("/dev");
     vfs_mknod("/dev/uart", &uart_f_ops);
+    vfs_mknod("/dev/framebuffer", &framebuffer_f_ops);
 }

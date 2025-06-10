@@ -88,6 +88,7 @@ int vfs_open(const char* pathname, int flags, struct file** target);
 int vfs_close(struct file* file);
 int vfs_write(struct file* file, const void* buf, size_t len);
 int vfs_read(struct file* file, void* buf, size_t len);
+int vfs_lseek64(struct file* file, long offset, int whence);
 
 int vfs_mkdir(const char* pathname);
 int vfs_mknod(const char* pathname, struct file_operations* f_ops);

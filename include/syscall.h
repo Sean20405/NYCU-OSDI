@@ -7,6 +7,7 @@
 #include "mailbox.h"
 #include "exec.h"
 #include "signal.h"
+#include "dev_framebuffer.h"
 
 #define SYS_GETPID_NUM      0
 #define SYS_UART_READ_NUM   1
@@ -26,6 +27,8 @@
 #define SYS_MKDIR_NUM       15
 #define SYS_MOUNT_NUM       16
 #define SYS_CHDIR_NUM       17
+#define SYS_LSEEK64_NUM     18
+#define SYS_IOCTL_NUM       19
 
 void sys_getpid(struct TrapFrame *trapframe);
 void sys_uart_read(struct TrapFrame *trapframe);
@@ -45,6 +48,8 @@ void sys_read(struct TrapFrame *trapframe);
 void sys_mkdir(struct TrapFrame *trapframe);
 void sys_mount(struct TrapFrame *trapframe);
 void sys_chdir(struct TrapFrame *trapframe);
+void sys_lseek64(struct TrapFrame *trapframe);
+void sys_ioctl(struct TrapFrame *trapframe);
 
 /* Wrapper function for syscall */
 int get_pid();
@@ -65,5 +70,7 @@ long read(int fd, void *buf, unsigned long count);
 int mkdir(const char *pathname, unsigned mode);
 int mount(const char *src, const char *target, const char *filesystem, unsigned long flags, const void *data);
 int chdir(const char *path);
+long lseek64(int fd, long offset, int whence);
+int ioctl(int fd, unsigned long request, void *argp);
 
 #endif /* SYSCALL_H */

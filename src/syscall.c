@@ -148,7 +148,7 @@ void sys_exit(struct TrapFrame *trapframe) {
 }
 
 void sys_mbox_call(struct TrapFrame *trapframe) {
-    // uart_puts("sys_mbox_call called\r\n");
+    uart_puts("sys_mbox_call called\r\n");
     unsigned char channel = (unsigned char)trapframe->x[0];
     unsigned int *mbox = (unsigned int *)trapframe->x[1];
     if (mbox == NULL) {
@@ -319,15 +319,15 @@ void sys_write(struct TrapFrame *trapframe) {
         return;
     }
 
-    uart_puts("[INFO] sys_write(");
-    uart_puts(itoa(fd));
-    uart_puts(", buf, ");
-    uart_puts(itoa(count));
-    uart_puts(")\r\n");
+    // uart_puts("[INFO] sys_write(");
+    // uart_puts(itoa(fd));
+    // uart_puts(", buf, ");
+    // uart_puts(itoa(count));
+    // uart_puts(")\r\n");
 
-    uart_puts("[INFO] sys_write: buf content: ");
-    uart_puts((char *)buf);
-    uart_puts("\r\n");
+    // uart_puts("[INFO] sys_write: buf content: ");
+    // uart_puts((char *)buf);
+    // uart_puts("\r\n");
 
     struct ThreadTask *curr = get_current();
     if (curr == NULL) {
@@ -337,11 +337,11 @@ void sys_write(struct TrapFrame *trapframe) {
     }
 
     struct file *file = curr->fd_table[fd];
-    uart_puts("[INFO] sys_write: file address @");
-    uart_hex((unsigned long)file->vnode);
-    uart_puts(" (task ");
-    uart_puts(itoa(curr->id));
-    uart_puts(")\r\n");
+    // uart_puts("[INFO] sys_write: file address @");
+    // uart_hex((unsigned long)file->vnode);
+    // uart_puts(" (task ");
+    // uart_puts(itoa(curr->id));
+    // uart_puts(")\r\n");
 
     if (file->vnode == NULL || file->f_ops == NULL || file->f_ops->write == NULL) {
         uart_puts("[WARN] sys_write: file not open or write operation not supported\r\n");
@@ -367,11 +367,11 @@ void sys_read(struct TrapFrame *trapframe) {
         trapframe->x[0] = -1;  // return -1
         return;
     }
-    uart_puts("[INFO] sys_read(");
-    uart_puts(itoa(fd));
-    uart_puts(", buf, ");
-    uart_puts(itoa(count));
-    uart_puts(")\r\n");
+    // uart_puts("[INFO] sys_read(");
+    // uart_puts(itoa(fd));
+    // uart_puts(", buf, ");
+    // uart_puts(itoa(count));
+    // uart_puts(")\r\n");
 
     struct ThreadTask *curr = get_current();
     if (curr == NULL) {
@@ -391,9 +391,9 @@ void sys_read(struct TrapFrame *trapframe) {
         trapframe->x[0] = ret;
         return;
     }
-    uart_puts("[INFO] sys_read: read content: ");
-    uart_puts((char *)buf);
-    uart_puts("\r\n");
+    // uart_puts("[INFO] sys_read: read content: ");
+    // uart_puts((char *)buf);
+    // uart_puts("\r\n");
     trapframe->x[0] = ret;
 }
 
@@ -485,6 +485,35 @@ void sys_chdir(struct TrapFrame *trapframe) {
         uart_puts(" (");
         uart_hex((unsigned long)curr->cwd);
         uart_puts(")\r\n");
+        trapframe->x[0] = 0;  // return 0 for success
+    }
+}
+
+void sys_lseek64(struct TrapFrame *trapframe) {
+    int fd = (int)trapframe->x[0];
+    long offset = (long)trapframe->x[1];
+    int whence = (int)trapframe->x[2];
+    if (fd < 0 || fd >= THREAD_MAX_FD) {
+        uart_puts("[WARN] sys_lseek64: invalid file descriptor\r\n");
+        trapframe->x[0] = -1;  // return -1
+        return;
+    }
+    
+    struct ThreadTask *curr = get_current();
+    vfs_lseek64(curr->fd_table[fd], offset, whence);
+}
+
+void sys_ioctl(struct TrapFrame *trapframe) {
+    int fd = (int)trapframe->x[0];
+    unsigned long request = (unsigned long)trapframe->x[1];
+    void *argp = (void *)trapframe->x[2];
+
+    int ret = dev_framebuffer_ioctl((struct framebuffer_info*)argp);
+    if (ret < 0) {
+        uart_puts("[WARN] sys_ioctl: ioctl failed\r\n");
+        trapframe->x[0] = ret;
+    }
+    else {
         trapframe->x[0] = 0;  // return 0 for success
     }
 }
@@ -717,6 +746,36 @@ int chdir(const char *path) {
         "mov %0, x0 \n"
         : "=r"(ret)
         : "r"(path)
+    );
+    return ret;
+}
+
+long lseek64(int fd, long offset, int whence) {
+    long ret;
+    asm volatile(
+        "mov x8, 18 \n"
+        "mov x0, %0 \n"
+        "mov x1, %1 \n"
+        "mov x2, %2 \n"
+        "svc 0      \n"
+        "mov %0, x0 \n"
+        : "=r"(ret)
+        : "r"(fd), "r"(offset), "r"(whence)
+    );
+    return ret;
+}
+
+int ioctl(int fd, unsigned long request, void *argp) {
+    int ret;
+    asm volatile(
+        "mov x8, 19 \n"
+        "mov x0, %0 \n"
+        "mov x1, %1 \n"
+        "mov x2, %2 \n"
+        "svc 0      \n"
+        "mov %0, x0 \n"
+        : "=r"(ret)
+        : "r"(fd), "r"(request), "r"(argp)
     );
     return ret;
 }
