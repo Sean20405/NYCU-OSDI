@@ -248,17 +248,9 @@ void sys_open(struct TrapFrame *trapframe) {
         return;
     }
 
-    uart_puts("[INFO] sys_open(");
-    uart_puts(pathname);
-    uart_puts(")\r\n");
-
     struct ThreadTask *curr = get_current();
     for (int i=0; i<THREAD_MAX_FD; ++i) {
         if (!curr->fd_table[i]) {
-            uart_puts("[INFO] sys_open: found an empty slot ");
-            uart_puts(itoa(i));
-            uart_puts(" in fd_table\r\n");
-
             // Look up the vnode
             int ret = vfs_open(pathname, flags, &curr->fd_table[i]);
             if (ret != 0) {
@@ -266,12 +258,6 @@ void sys_open(struct TrapFrame *trapframe) {
                 trapframe->x[0] = -ret;
                 return;
             }
-
-            uart_puts("[INFO] sys_open: opened file successfully, file->vnode address @");
-            uart_hex((unsigned long)curr->fd_table[i]->vnode);
-            uart_puts(" (task ");
-            uart_puts(itoa(curr->id));
-            uart_puts(")\r\n");
 
             trapframe->x[0] = i;
             return;
@@ -286,10 +272,6 @@ void sys_close(struct TrapFrame *trapframe) {
         trapframe->x[0] = -1;  // return -1
         return;
     }
-
-    uart_puts("[INFO] sys_close(");
-    uart_puts(itoa(fd));
-    uart_puts(")\r\n");
 
     struct ThreadTask *curr = get_current();
     if (curr == NULL) {
@@ -319,16 +301,6 @@ void sys_write(struct TrapFrame *trapframe) {
         return;
     }
 
-    // uart_puts("[INFO] sys_write(");
-    // uart_puts(itoa(fd));
-    // uart_puts(", buf, ");
-    // uart_puts(itoa(count));
-    // uart_puts(")\r\n");
-
-    // uart_puts("[INFO] sys_write: buf content: ");
-    // uart_puts((char *)buf);
-    // uart_puts("\r\n");
-
     struct ThreadTask *curr = get_current();
     if (curr == NULL) {
         uart_puts("[WARN] sys_write: current task is NULL\r\n");
@@ -337,11 +309,6 @@ void sys_write(struct TrapFrame *trapframe) {
     }
 
     struct file *file = curr->fd_table[fd];
-    // uart_puts("[INFO] sys_write: file address @");
-    // uart_hex((unsigned long)file->vnode);
-    // uart_puts(" (task ");
-    // uart_puts(itoa(curr->id));
-    // uart_puts(")\r\n");
 
     if (file->vnode == NULL || file->f_ops == NULL || file->f_ops->write == NULL) {
         uart_puts("[WARN] sys_write: file not open or write operation not supported\r\n");
@@ -367,11 +334,6 @@ void sys_read(struct TrapFrame *trapframe) {
         trapframe->x[0] = -1;  // return -1
         return;
     }
-    // uart_puts("[INFO] sys_read(");
-    // uart_puts(itoa(fd));
-    // uart_puts(", buf, ");
-    // uart_puts(itoa(count));
-    // uart_puts(")\r\n");
 
     struct ThreadTask *curr = get_current();
     if (curr == NULL) {
@@ -391,9 +353,7 @@ void sys_read(struct TrapFrame *trapframe) {
         trapframe->x[0] = ret;
         return;
     }
-    // uart_puts("[INFO] sys_read: read content: ");
-    // uart_puts((char *)buf);
-    // uart_puts("\r\n");
+
     trapframe->x[0] = ret;
 }
 
@@ -405,10 +365,6 @@ void sys_mkdir(struct TrapFrame *trapframe) {
         trapframe->x[0] = -1;  // return -1
         return;
     }
-
-    uart_puts("[INFO] sys_mkdir(");
-    uart_puts(pathname);
-    uart_puts(")\r\n");
 
     int ret = vfs_mkdir(pathname);
     if (ret < 0) {
@@ -438,12 +394,6 @@ void sys_mount(struct TrapFrame *trapframe) {
         return;
     }
 
-    uart_puts("[INFO] sys_mount(");
-    uart_puts(target);
-    uart_puts(", ");
-    uart_puts(filesystem);
-    uart_puts(")\r\n");
-
     int ret = vfs_mount(target, filesystem);
     if (ret < 0) {
         uart_puts("[WARN] sys_mount: vfs_mount failed\r\n");
@@ -463,10 +413,6 @@ void sys_chdir(struct TrapFrame *trapframe) {
         return;
     }
 
-    uart_puts("[INFO] sys_chdir(");
-    uart_puts(path);
-    uart_puts(")\r\n");
-
     struct ThreadTask *curr = get_current();
     if (curr == NULL) {
         uart_puts("[WARN] sys_chdir: current task is NULL\r\n");
@@ -480,11 +426,6 @@ void sys_chdir(struct TrapFrame *trapframe) {
         trapframe->x[0] = ret;  // return error code
     }
     else {
-        uart_puts("[INFO] sys_chdir: changed directory to ");
-        uart_puts(path);
-        uart_puts(" (");
-        uart_hex((unsigned long)curr->cwd);
-        uart_puts(")\r\n");
         trapframe->x[0] = 0;  // return 0 for success
     }
 }
@@ -498,7 +439,7 @@ void sys_lseek64(struct TrapFrame *trapframe) {
         trapframe->x[0] = -1;  // return -1
         return;
     }
-    
+
     struct ThreadTask *curr = get_current();
     vfs_lseek64(curr->fd_table[fd], offset, whence);
 }

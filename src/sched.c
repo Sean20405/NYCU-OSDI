@@ -199,8 +199,8 @@ int _kill(unsigned int pid) {
 }
 
 void schedule() {
-    // disable_irq_el1();
-    // timer_disable_irq();
+    disable_irq_el1();
+    timer_disable_irq();
 
     struct ThreadTask *prev = get_current();
     if (prev == NULL) {
@@ -208,9 +208,13 @@ void schedule() {
         set_current(ready_queue);
     }
     else {
-        struct ThreadTask *next = pop_thread_task(&ready_queue);
+        struct ThreadTask *next = ready_queue;
 
-        if (next == NULL || next == prev) return;
+        if (next == NULL || next == prev) {
+            enable_irq_el1();
+            timer_enable_irq();
+            return;
+        }
 
         if (prev->state == TASK_RUNNING) {
             prev->state = TASK_READY;
@@ -225,6 +229,8 @@ void schedule() {
         else if (prev->state == TASK_READY);
         else {
             uart_puts("Invalid thread state!\n");
+            enable_irq_el1();
+            timer_enable_irq();
             return;
         }
 
@@ -232,6 +238,11 @@ void schedule() {
 
         // Switch to the next task
         next->state = TASK_RUNNING;
+        next = pop_thread_task(&ready_queue);
+
+        // enable_irq_el1();
+        timer_enable_irq();
+
         cpu_switch_to(prev, next);
     }
 

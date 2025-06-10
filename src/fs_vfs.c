@@ -36,10 +36,6 @@ int vfs_open(const char* pathname, int flags, struct file** target) {
 
     if (lookup_result != 0) {  // Not found
         if (flags & O_CREAT) {  // Create a file
-            uart_puts("[vfs_open] File not found, attempting to create: ");
-            uart_puts(pathname);
-            uart_puts("\r\n");
-
             struct vnode* parent_vnode = NULL;
             char* path_copy_for_create = strdup(pathname);
             if (!path_copy_for_create) {
@@ -81,12 +77,6 @@ int vfs_open(const char* pathname, int flags, struct file** target) {
                     return ret;
                 }
             }
-        
-            uart_puts("[vfs_open] Parent directory found: ");
-            uart_puts(path_copy_for_create);
-            uart_puts("(");
-            uart_hex((unsigned long)parent_vnode);
-            uart_puts(")\r\n");
 
             // Create file on the parent vnode
             char* basename = path_copy_for_create + last_slash_index + 1; // Get the file name
@@ -121,10 +111,6 @@ int vfs_open(const char* pathname, int flags, struct file** target) {
 int vfs_close(struct file* file) {
     if (file == NULL) return EINVAL_VFS;
 
-    uart_puts("[vfs_close] file: ");
-    uart_hex((unsigned long)file);
-    uart_puts("\r\n");
-
     int ret = 0;
     if (file->f_ops && file->f_ops->close) {
         ret = file->f_ops->close(file);
@@ -147,14 +133,6 @@ int vfs_write(struct file* file, const void* buf, size_t len) {
 }
 
 int vfs_read(struct file* file, void* buf, size_t len) {
-    uart_puts("[vfs_read] called with file: ");
-    uart_hex((unsigned long)file);
-    uart_puts(" and buf: ");
-    uart_hex((unsigned long)buf);
-    uart_puts(" and len: ");
-    uart_puts(itoa(len));
-    uart_puts("\r\n");
-
     if (file == NULL || buf == NULL) return EINVAL_VFS;
     if (len == 0) return 0;
 
@@ -173,18 +151,20 @@ int vfs_lseek64(struct file* file, long offset, int whence) {
 }
 
 int vfs_mkdir(const char* pathname) {
-    uart_puts("[vfs_mkdir] called with pathname: ");
-    uart_puts(pathname);
-    uart_puts("\r\n");
-
     if (pathname == NULL) {
         return EINVAL_VFS;
     }
 
+    uart_puts("[vfs_mkdir] vfs_mkdir called with pathname: ");
+    uart_puts(pathname);
+    uart_puts("\r\n");
     char* path_copy = strdup(pathname);
     if (!path_copy) {
         return ENOMEM_VFS;
     }
+    uart_puts("[vfs_mkdir] Path copy created: ");
+    uart_puts(path_copy);
+    uart_puts("\r\n");
 
     int path_len = strlen(path_copy);
     int last_slash_index = -1;
@@ -195,11 +175,10 @@ int vfs_mkdir(const char* pathname) {
         }
     }
 
-    uart_puts("[vfs_mkdir] last_slash_index = ");
-    uart_puts(itoa(last_slash_index)); // Assuming you have a function itoa to convert int to string
-    uart_puts("\r\n");
-
     struct vnode* cwd = get_current()->cwd;
+    uart_puts("[vfs_mkdir] Attempting to create directory: ");
+    uart_puts(path_copy);
+    uart_puts("\r\n");
 
     struct vnode* parent_vnode = NULL;
     char* dir_name_to_create;
@@ -243,15 +222,14 @@ int vfs_mkdir(const char* pathname) {
         int ret_mkdir = parent_vnode->v_ops->mkdir(parent_vnode, &new_dir_vnode, dir_name_to_create);
         if (ret_mkdir == 0) {
             free(path_copy);
-            uart_puts("[vfs_mkdir] Directory created successfully: ");
-            uart_puts(pathname);
-            uart_puts("\r\n");
             return 0; // Success
         }
         else {
             free(path_copy);
             uart_puts("[vfs_mkdir] Failed to create directory: ");
             uart_puts(pathname);
+            uart_puts(" - Error code: ");
+            uart_puts(itoa(ret_mkdir));
             uart_puts("\r\n");
             return ret_mkdir; // Return the error code from mkdir operation
         }
@@ -361,16 +339,6 @@ int vfs_mount(const char* target_pathname, const char* filesystem_name) {
 
     new_mount->root->parent = target_vnode;
 
-    uart_puts("[vfs_mount] Mounted filesystem '");
-    uart_puts(filesystem_name);
-    uart_puts("' at target path '");
-    uart_puts(target_pathname);
-    uart_puts("'. New mount root vnode: ");
-    uart_puts(((struct tmpfs_node*)(new_mount->root->internal))->name);
-    uart_puts(" (");
-    uart_hex((unsigned long)new_mount->root);
-    uart_puts(")\r\n");
-
     return 0;  // Success
 }
 
@@ -407,7 +375,7 @@ static char* get_next_component(char** path_ptr) {
 }
 
 int vfs_lookup(const char* pathname, struct vnode** target) {
-    uart_puts("[vfs_lookup] called with pathname: ");
+    uart_puts("[vfs_lookup] Looking up path: ");
     uart_puts(pathname);
     uart_puts("\r\n");
     
@@ -494,24 +462,8 @@ int vfs_lookup(const char* pathname, struct vnode** target) {
 
         // If current_vnode is a mount point, look into its file system root
         if (current_vnode->mount != NULL) {
-            uart_puts("[vfs_lookup] Current vnode '");
-            uart_puts(((struct tmpfs_node*)(current_vnode->internal))->name);
-            uart_puts("' is a mount point, switching to its root (");
-            uart_hex((unsigned long)current_vnode->mount->root);
-            uart_puts(")\r\n");
-
             current_vnode = current_vnode->mount->root;
         }
-
-        uart_puts("[vfs_lookup] Looking up component '");
-        uart_puts(component_name);
-        uart_puts("' in path '");
-        uart_puts(pathname);
-        uart_puts("'. Under current vnode: ");
-        uart_puts(((struct tmpfs_node*)(current_vnode->internal))->name);
-        uart_puts(" (");
-        uart_hex((unsigned long)current_vnode);
-        uart_puts(")\r\n");
 
         if (current_vnode->v_ops == NULL || current_vnode->v_ops->lookup == NULL) {
             free(path_copy);
@@ -523,24 +475,11 @@ int vfs_lookup(const char* pathname, struct vnode** target) {
 
         if (result != 0) {
             free(path_copy);
-            uart_puts("[vfs_lookup] Lookup failed for component '");
-            uart_puts(component_name);
-            uart_puts("' in path '");
-            uart_puts(pathname);
-            uart_puts("'. Error code: ");
-            uart_puts(itoa(result));
-            uart_puts("\r\n");
             return result; // Lookup failed
         }
 
         // If next_vnode is a mount point, look into its file system root
         if (next_vnode->mount != NULL) {
-            uart_puts("[vfs_lookup] Next vnode '");
-            uart_puts(((struct tmpfs_node*)(next_vnode->internal))->name);
-            uart_puts("' is a mount point, switching to its root (");
-            uart_hex((unsigned long)next_vnode->mount->root);
-            uart_puts(")\r\n");
-
             next_vnode = next_vnode->mount->root;
         }
 
@@ -564,6 +503,7 @@ void vfs_init() {
     filesystems[0]->setup_mount(filesystems[0], rootfs);
     rootfs->root->parent = NULL;
 
+    uart_puts("Initializing /initramfs...\n");
     vfs_mkdir("/initramfs");
     register_initramfs();
     vfs_mount("/initramfs", "initramfs");
@@ -571,6 +511,7 @@ void vfs_init() {
     vfs_lookup("/initramfs", &initramfs_node);
     initramfs_init(initramfs_node);
 
+    uart_puts("Initializing /dev...\n");
     vfs_mkdir("/dev");
     vfs_mknod("/dev/uart", &uart_f_ops);
     vfs_mknod("/dev/framebuffer", &framebuffer_f_ops);

@@ -98,11 +98,6 @@ int tmpfs_lookup(struct vnode* dir_node, struct vnode** target, const char* comp
 
     for (int i = 0; i < parent_internal->num_children; ++i) {
         char *child_name = ((struct tmpfs_node*)(parent_internal->children[i]->internal))->name;
-        uart_puts("[tmpfs_lookup] Checking child: ");
-        uart_puts(child_name);
-        uart_puts(" (");
-        uart_hex((unsigned long)parent_internal->children[i]);
-        uart_puts(")\r\n");
         if (strcmp(child_name, component_name) == 0) {
             *target = parent_internal->children[i];
             return 0;
@@ -161,17 +156,6 @@ int tmpfs_create_or_mkdir(struct vnode* dir_node, struct vnode** target, const c
     parent_internal->children[parent_internal->num_children++] = new_vnode;
     *target = new_vnode;
 
-    uart_puts("[tmpfs_create_or_mkdir] Created ");
-    uart_puts(type == TMPFS_NODE_FILE ? "file" : "directory");
-    uart_puts(" '");
-    uart_puts(component_name);
-    uart_puts("' (");
-    uart_hex((unsigned long)new_vnode);
-    uart_puts(") in directory '");
-    uart_puts(parent_internal->name);
-    uart_puts("' (");
-    uart_hex((unsigned long)dir_node);
-    uart_puts(")\r\n");
     return 0; // Success
 }
 

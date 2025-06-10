@@ -49,7 +49,6 @@ int dev_uart_write(struct file* file, const void* buf, size_t len) {
 }
 
 int dev_uart_read(struct file* file, void* buf, size_t len) {
-    uart_puts("[dev_uart_read] Reading from UART...\r\n");
     if (file == NULL || buf == NULL || len == 0) {
         return EINVAL_VFS;
     }

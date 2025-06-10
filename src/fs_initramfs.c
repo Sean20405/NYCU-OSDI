@@ -54,10 +54,6 @@ int initramfs_setup_mount(struct filesystem* fs, struct mount* mount) {
 }
 
 void initramfs_init(struct vnode* rootvnode) {
-    uart_puts("[initramfs_init] rootvnode: ");
-    uart_hex((unsigned long)rootvnode);
-    uart_puts("\r\n");
-
     ((struct initramfs_node*)(rootvnode->internal))->type = INITRAMFS_NODE_DIRECTORY;
 
     const unsigned long HEADER_SIZE = sizeof(struct cpio_newc_header);
@@ -77,12 +73,6 @@ void initramfs_init(struct vnode* rootvnode) {
             if (strcmp(filename, "TRAILER!!!") == 0) {  // End of the archive
                 break;
             }
-
-            uart_puts("[initramfs_init] Found file: ");
-            uart_puts(filename);
-            uart_puts(" (size: ");
-            uart_hex(filesize);
-            uart_puts(")\r\n");
 
             struct initramfs_node* new_node = (struct initramfs_node*)alloc(sizeof(struct initramfs_node));
             memcpy(new_node->name, filename, filenamesize);
@@ -121,12 +111,6 @@ void initramfs_init(struct vnode* rootvnode) {
 }
 
 int initramfs_lookup(struct vnode* dir_node, struct vnode** target, const char* component_name) {
-    uart_puts("[initramfs_lookup] Looking up component: ");
-    uart_puts(component_name);
-    uart_puts(", dir_node: ");
-    uart_hex((unsigned long)dir_node);
-    uart_puts("\r\n");
-    
     if (!dir_node || !dir_node->internal || !target || !component_name) {
         return EINVAL_VFS;
     }
@@ -141,11 +125,6 @@ int initramfs_lookup(struct vnode* dir_node, struct vnode** target, const char* 
 
     for (int i = 0; i < parent_internal->num_children; ++i) {
         char *child_name = ((struct initramfs_node*)(parent_internal->children[i]->internal))->name;
-        uart_puts("[initramfs_lookup] Checking child: ");
-        uart_puts(child_name);
-        uart_puts(" (");
-        uart_hex((unsigned long)parent_internal->children[i]);
-        uart_puts(")\r\n");
         if (strcmp(child_name, component_name) == 0) {
             *target = parent_internal->children[i];
             return 0;

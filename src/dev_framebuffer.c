@@ -143,19 +143,6 @@ int dev_framebuffer_ioctl(struct framebuffer_info* info) {
         pitch = mbox[33];       // get number of bytes per line
         isrgb = mbox[24];       // get the actual channel order
         lfb = (void *)((unsigned long)mbox[28]);
-
-        uart_puts("Framebuffer initialized successfully:\n");
-        uart_puts("  Width: ");
-        uart_puts(itoa(width));
-        uart_puts("\n  Height: ");
-        uart_puts(itoa(height));
-        uart_puts("\n  Pitch: ");
-        uart_puts(itoa(pitch));
-        uart_puts("\n  Is RGB: ");
-        uart_puts(isrgb ? "Yes\n" : "No\n");
-        uart_puts("  Framebuffer Address: ");
-        uart_hex((unsigned long)lfb);
-        uart_puts("\n");
     }
     else {
         uart_puts("Unable to set screen resolution to 1024x768x32\n");

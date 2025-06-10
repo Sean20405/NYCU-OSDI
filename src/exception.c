@@ -13,6 +13,7 @@ void exception_entry() {
     );
 
     unsigned long ec = (esr_el1 >> 26) & 0x3f;  // Extract the exception class
+    struct ThreadTask *current_task = get_current();
 
     uart_puts("spsr_el1: ");
     uart_hex(spsr_el1);
@@ -22,6 +23,12 @@ void exception_entry() {
     uart_hex(esr_el1);
     uart_puts(" EC: ");
     uart_hex(ec);
+    uart_puts(" Current Task ID: ");
+    if (current_task) {
+        uart_hex(current_task->id);
+    } else {
+        uart_puts("None");
+    }
     uart_puts("\r\n");
 }
 
