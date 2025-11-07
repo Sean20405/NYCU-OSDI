@@ -156,3 +156,6 @@ cd ..
 
 >[!Warning]
 > `run.sh` is an example and assumes a specific `usbip`/device setup and that the target partition appears as `/dev/sdd1`. Adjust device names and steps for your environment.
+
+## License
+This project is under MIT license, please see [LICENSE](LICENSE) for more detail.
